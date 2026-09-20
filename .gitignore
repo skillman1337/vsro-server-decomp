@@ -1,0 +1,61 @@
+# Build products (including older outputs beside source files)
+/build/
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.pch
+
+# Runtime diagnostics and crash dumps
+*.log
+*.dmp
+*_FatalLog.txt
+very_fatal_log.txt
+StartupError_*.txt
+
+# Local configuration and credentials
+/server.cfg
+.env
+.env.*
+!.env.example
+*.local.cfg
+*.pem
+*.key
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Editor, OS, and temporary files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+*.swo
+*.tmp
+*.bak
+*~
+Thumbs.db
+.DS_Store
+/tmp/
+/temp/
+
+# Local reverse-engineering databases and binary archives
+*.bndb
+*.bndb.*
+*.idb
+*.i64
+*.ghidra/
+*.zip
+*.7z
+*.rar

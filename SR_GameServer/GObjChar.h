@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include "CharacterPeriodicJobs.h"
+#include "ActorAsyncJobs.h"
 #include <string>
 #include "GObj.h"
 #include "SkillManager.h"
@@ -181,6 +182,7 @@ public:
 	// Advances character timers, buffs, combat status, and movement interpolation
 	virtual void OnTick(float fDeltaSec) override;
 	CharacterPeriodicJobs m_periodicJobs; // native +18C, portable callback bindings
+	ActorAsyncJobs m_asyncJobs; // native +1D8, shared state-change job ownership
 
 	// Slot 270 @ +0x438: IsAbilityOrPetCOS [RECONSTRUCTED - 0x004838E0]
 	virtual bool IsAbilityOrPetCOS() const;
@@ -456,7 +458,7 @@ public:
 	// Native forwards all arguments through world-controller +0x28, then actor
 	// +0x4F4 (normal worlds) or +0x4F8 (siege). Current HP subtraction does not
 	// implement those policies, attribution, or downstream death callbacks.
-	virtual int32_t ApplyHit(CGObjChar* pAttacker, int32_t nDamage1, int32_t nDamage2, int32_t nFlag1, int32_t nFlag2);
+	virtual int32_t ApplyHit(CGObjChar* pAttacker, int32_t nDamage1, int32_t nDamage2, uint32_t reason, void* hitContext);
 
 	// Slot 347 @ +0x56C: GetMainWeaponAttackSkillID (overridden by CGObjPC @ 0x004EAE50)
 	virtual uint32_t GetMainWeaponAttackSkillID() const;

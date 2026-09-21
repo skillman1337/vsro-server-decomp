@@ -66,7 +66,21 @@ public:
 
 	// [RECONSTRUCTED - Native 0x0049EDB0 / VTable Slot 312]
 	// Splits current stack and returns a new expendable item
-	virtual CGItemExpendable* SplitStack(int32_t nCount);
+	virtual CGItem* SplitStack(int32_t nCount) override;
+
+	// [RECONSTRUCTED - Native 0x00484FD0 / VTable Slot +0x360]
+	// Clones instance with cloned permanent record
+	virtual CGItem* CloneItemWithRecord() override;
+
+	// [RECONSTRUCTED - Native 0x00482DB0 / VTable Slot +0x4C]
+	// Stackable expendable item returns true (1) for merge eligibility
+	virtual bool IsSkillActor() const override;
+
+	// [RECONSTRUCTED - Native 0x0048F990 / VTable Slot +0x504]
+	virtual void BindStorageOwner(CGObj* pOwner) override;
+
+	virtual int32_t GetMaxStack() const override;
+	virtual bool HasCompletePrerequisites() const override;
 
 	// [RECONSTRUCTED - Native 0x0049EE80 / VTable Slot 313]
 	// Decrements stock count with assertion check

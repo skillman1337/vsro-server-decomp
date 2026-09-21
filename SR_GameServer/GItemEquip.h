@@ -15,6 +15,7 @@
 #define _SR_GAMESERVER_GITEMEQUIP_H_
 
 #include "GItem.h"
+#include "../ServerCommon/InstanceItem.h"
 #include <cstdint>
 
 class CGObjChar;
@@ -137,7 +138,9 @@ public:
 
 public:
 	// Accessor Helpers
-	uint32_t GetCurrentDurability() const { return m_dwCurrentDurability; }
+	uint32_t GetCurrentDurability() const;
+	bool IsBroken() const { return m_dwBrokenState != 0; }
+	void SetBrokenState(uint32_t broken); // native 495980, with item-family exemptions
 	uint32_t GetMaxDurability() const     { return m_dwMaxDurability; }
 	uint32_t GetEquipState() const        { return m_dwEquipState; }
 
@@ -157,7 +160,7 @@ public:
 
 public:
 	// Exact struct layout matching native binary bytes (+0x190 to +0x1E8, total size: 0x1E8 = 488 bytes):
-	uint32_t m_dwCurrentDurability; // +0x190: Current item durability
+	uint32_t m_dwBrokenState;       // +0x190: Derived broken flag, NOT durability
 	uint32_t m_dwMaxDurability;     // +0x194: Maximum item durability (scaled by stat variance)
 	float    m_fPhyDefense;         // +0x198: Physical defense rating
 	float    m_fMagDefense;         // +0x19C: Magical defense rating

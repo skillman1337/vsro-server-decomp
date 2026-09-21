@@ -4,7 +4,7 @@
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\EventDaemon_Action.h
  *
  * Implements:
- *   - CEventDaemon_Action @ 0x00B02160
+ *   - CEventDaemon_Action: existing reconstruction; 0x00B02160 is file-path data
  * ============================================================================
  */
 
@@ -19,7 +19,7 @@ public:
 	CEventDaemon_Action();
 	virtual ~CEventDaemon_Action();
 
-	// [RECONSTRUCTED - Native 0x00B02160]
+	// [UNIMPLEMENTED - 0x00B02160 is a source-path string, not a function]
 	// Triggers automated server-wide events and scheduled scripts
 	bool ExecuteEventAction(uint32_t dwActionID, const char* pszParam);
 };

@@ -11,6 +11,7 @@
  */
 
 #include "GItem.h"
+#include "../ServerCommon/InstanceItem.h"
 #include "../ServerCommon/InstanceChar.h"
 #include <cstring>
 
@@ -22,6 +23,7 @@ CGItem::CGItem()
 	, m_fLocalPosX(0.0f)
 	, m_fLocalPosY(0.0f)
 	, m_fLocalPosZ(0.0f)
+	, m_pOwner(nullptr)
 	, m_dwDespawnState(0)
 	, m_dwOwnerID(0)
 	, m_dwDropType(0)
@@ -38,6 +40,7 @@ CGItem::CGItem()
 
 // [RECONSTRUCTED - Native 0x0048F8A0]
 CGItem::~CGItem() {
+	m_pOwner = nullptr;
 	m_dwDespawnState = 0;
 	m_dwOwnerID = 0;
 	m_dwDropType = 0;
@@ -140,4 +143,86 @@ tagTID CGItem::GetTID() const {
 		return tagTID(0);
 	}
 	return tagTID(m_pDataPermanent->m_pRefObjCommon->m_wTypeID);
+}
+
+bool CGItem::IsSkillActor() const {
+	return false;
+}
+
+void CGItem::SetRecordIdentity20(uint64_t serial) {
+	if (m_pDataPermanent) {
+		m_pDataPermanent->SetSerial20(serial);
+	}
+}
+
+uint64_t CGItem::GetRecordIdentity20() const {
+	return m_pDataPermanent ? m_pDataPermanent->GetSerial20() : 0;
+}
+
+uint64_t CGItem::GetRecordIdentityC0() const {
+	return m_pDataPermanent ? m_pDataPermanent->GetSerialC0() : 0;
+}
+
+void CGItem::SetRecordIdentityC0(uint64_t serial) {
+	if (m_pDataPermanent) {
+		m_pDataPermanent->SetSerialC0(serial);
+	}
+}
+
+// Native 48F990 semantic projection: null detaches without clearing cached GID.
+// Host CGObj layout is not native x86 layout; use the canonical accessor.
+void CGItem::BindStorageOwner(CGObj* pOwner) {
+	m_pOwner = pOwner;
+	if (pOwner) {
+		m_dwOwnerID = pOwner->GetGlobalID();
+	}
+}
+
+CGItem* CGItem::SplitStack(int32_t /*quantity*/) {
+	return nullptr;
+}
+
+// PARTIAL: does not yet use native 485E70 factory/registration or close record
+// pool ownership. The runtime-ID copy below is NOT native factory equivalence.
+CGItem* CGItem::CloneItemWithRecord() {
+	if (!m_pDataPermanent) {
+		return nullptr;
+	}
+	CInstanceItem* pClonedRecord = m_pDataPermanent->CloneRecord();
+	if (!pClonedRecord) {
+		return nullptr;
+	}
+	pClonedRecord->SetSerial20(0);
+	CGItem* pNewItem = new CGItem();
+	pNewItem->m_pDataPermanent = pClonedRecord;
+	pNewItem->m_dwClassID = m_dwClassID;
+	pNewItem->m_dwGlobalID = m_dwGlobalID;
+	pNewItem->m_pOwner = m_pOwner;
+	pNewItem->m_dwOwnerID = m_dwOwnerID;
+	pNewItem->m_dwDropType = m_dwDropType;
+	pNewItem->m_byLifeState = ITEM_STATE_ALIVE;
+	return pNewItem;
+}
+
+// PARTIAL exceptional path: valid-reference load matches 459D80; a missing
+// reference raises a host exception instead of native diagnostic continuation.
+int32_t CGItem::GetMaxStack() const {
+	if (!m_pDataPermanent || !m_pDataPermanent->m_pRefObjCommon)
+		throw std::logic_error("item maximum stack requires reference data");
+	return static_cast<int32_t>(m_pDataPermanent->m_pRefObjCommon->m_dwMaxStack);
+}
+
+int32_t CGItem::SetCount(int32_t count) {
+	if (m_pDataPermanent) {
+		m_pDataPermanent->m_dwDurability = count > 0 ? static_cast<uint32_t>(count) : 0;
+	}
+	return count;
+}
+
+uint32_t CGItem::GetRefObjID() const {
+	return m_pDataPermanent ? m_pDataPermanent->m_dwRefObjID : 0;
+}
+
+bool CGItem::HasCompletePrerequisites() const {
+	return false;
 }

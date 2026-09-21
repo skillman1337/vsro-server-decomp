@@ -4,7 +4,7 @@
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\GObjMob.cpp
  *
  * Implements:
- *   - CGObjMob::OnDeath @ 0x00AEDD60
+ *   - CGObjMob::OnDeath: placeholder; 0x00AEDD60 is file-path data
  * ============================================================================
  */
 
@@ -23,7 +23,7 @@ CGObjMob::~CGObjMob() {
 /*
 ================
 CGObjMob::OnDeath
-[RECONSTRUCTED - Native 0x00AEDD60]
+[UNIMPLEMENTED - 0x00AEDD60 is a source-path string, not a function]
 ================
 */
 void CGObjMob::OnDeath(CGObjChar* pKiller) {

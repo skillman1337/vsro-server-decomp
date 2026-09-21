@@ -15,7 +15,7 @@ struct Host {
     void ConsumeResources(int32_t hp,int32_t mp) { events.push_back({2,uint32_t(hp),uint32_t(mp),0}); }
     void WriteParameter(uint32_t id,uint32_t ch,float n) {events.push_back({3,id,ch,std::bit_cast<uint32_t>(n)});}
     void SendParameterStats() { events.push_back({4,0,0,0}); }
-    void ResetMotion() { events.push_back({5,0,0,0}); }
+    void CancelActionsAndRetireSkills() { events.push_back({5,0,0,0}); }
     void SetMotion(float n) {events.push_back({6,std::bit_cast<uint32_t>(n),0,0});}
     void DamageEquipment(uint32_t k,uint32_t p) {events.push_back({7,k,p,0});}
 };

@@ -52,7 +52,7 @@ struct DeferredInstructions {
         if (parameters[4]) { host.ConsumeResources(int32_t(host.CurrentHP()-1),0); return false; }
         if (parameters[5]) { host.ConsumeResources(0,int32_t(host.CurrentMP()-1)); return false; }
         if (const auto* p=parameters[6]) {
-            host.ResetMotion(); host.SetMotion(float(double(p[0])/1000)); return false;
+            host.CancelActionsAndRetireSkills(); host.SetMotion(float(double(p[0])/1000)); return false;
         }
         if (const auto* p=parameters[7]) {
             if (host.IsPlayer()) host.DamageEquipment(p[0],p[1]);

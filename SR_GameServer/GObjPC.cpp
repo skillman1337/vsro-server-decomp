@@ -475,7 +475,7 @@ bool CGObjPC::IsMainWeaponUsable() const {
 	}
 	CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pItem);
 	if (pEquip) {
-		return pEquip->GetCurrentDurability() > 0;
+		return !pEquip->IsBroken();
 	}
 	return true;
 }
@@ -492,7 +492,7 @@ bool CGObjPC::IsSecondaryWeaponUsable() const {
 	}
 	CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pItem);
 	if (pEquip) {
-		return pEquip->GetCurrentDurability() > 0;
+		return !pEquip->IsBroken();
 	}
 	return true;
 }
@@ -519,7 +519,7 @@ bool CGObjPC::IsEquipmentSlotUsable(uint32_t dwSlot) const {
 	}
 	CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pItem);
 	if (pEquip) {
-		return pEquip->GetCurrentDurability() > 0;
+		return !pEquip->IsBroken();
 	}
 	return true;
 }

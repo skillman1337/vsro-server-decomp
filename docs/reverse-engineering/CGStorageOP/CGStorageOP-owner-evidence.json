@@ -1,0 +1,44 @@
+[
+  {
+    "va": 4955888,
+    "name": "CGStorageOP_DetachAndDestroy",
+    "signature": "void __thiscall(void* self, struct StorageContainerPrefix* storage, int32_t slot)",
+    "evidence": "4B9EF4 signed bounds; virtual0C detach; nonnull result passed in ESI to ObjMgr_DestroyObject. RET8; return has no consistent value."
+  },
+  {
+    "va": 4956144,
+    "name": "CGStorageOP_FindItemPointerDefaultRange",
+    "signature": "uint8_t __thiscall(void* self, struct StorageContainerPrefix* storage, void* item)",
+    "evidence": "4B9FF4 kind0 starts13; kinds2,3,4 start0; calls virtual40; other kinds return AL0 (not FF)."
+  },
+  {
+    "va": 4957216,
+    "name": "CGStorageOP_FindItemIdentityDefaultRange",
+    "signature": "void* __thiscall(void* self, struct StorageContainerPrefix* storage, uint64_t identity)",
+    "evidence": "4BA420 kind0 start13; kinds2..4 start0; other kinds null. virtual44 receives storage,64bit identity,start,capacity. Identity accessor and miss behavior must be verified in4BA460."
+  },
+  {
+    "va": 4957856,
+    "name": "CGStorageOP_ClearRecordIdentityWords",
+    "signature": "void __stdcall(struct StorageContainerPrefix* storage)",
+    "evidence": "4BA6A0 walks full backing vector; occupied record=item+34. If record20 or24 nonzero, gateD2043Cbit1 writes both zero, otherwise diagnostic. Does NOT write record dirty flags. Meaning of identity words remains pending producer proof."
+  },
+  {
+    "va": 4806992,
+    "name": "CGItem_SetField15C",
+    "signature": "void __thiscall(void* item, uint32_t value)",
+    "evidence": "Exact mov [ecx+15C],stackarg; RET4. Semantics unresolved; no invented field name."
+  },
+  {
+    "va": 4782480,
+    "name": "CGItem_BindStorageOwner",
+    "signature": "void __thiscall(void* item, void* owner)",
+    "evidence": "Exact 48F996 writes owner pointer atitem14C. Nonnull owner reads owner8 runtimeID then writes item154; null retains previous cachedID. Verified AE9384/AEB2B4 slot321(+504). Conflicts with recreation despawn/drop field names; portable layout not validated."
+  },
+  {
+    "va": 4781776,
+    "name": "CGItem_GetRecordIdentityC0",
+    "signature": "uint64_t __thiscall(void* item)",
+    "evidence": "Exact item34 record; return recordC0 low in EAX,recordC4 highEDX. Purpose of this identity remains pending producer proof. AE9384/AEB2B4 +4FC."
+  }
+]

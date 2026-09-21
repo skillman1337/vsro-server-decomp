@@ -119,6 +119,7 @@ void CGObjChar_RemoveFromList(tagCharListNode* pNode) {
 
 CGObjChar::CGObjChar()
 	: CGObj()
+	, m_asyncJobs([] { return GetTickCount(); })
 	, m_MoveState()
 	, m_fWalkSpeed(0.0f)
 	, m_fRunSpeed(0.0f)
@@ -170,6 +171,8 @@ CGObjChar::CGObjChar()
 		m_pSkillManager->OnTick(0.300000012f);
 		UpdateAbnormalStates();
 	});
+	// 4A6E29..4A6E3E: async actor jobs follow skill queues at the same cadence.
+	m_periodicJobs.Add(0.300000012f, [this] { m_asyncJobs.Advance(); });
 }
 
 CGObjChar::~CGObjChar() {
@@ -1004,12 +1007,9 @@ void CGObjChar::OnMsg_7034(CMsg* pMsg) {
  * Slot 211 @ +0x34C: OnTick
  * Native 0x004A88F0: Advances active character status, movement interpolation, and combat timers.
  *
- * Disassembly Flow:
- *   1. Check motion state (slot 63 @ +0xFC): if (motion == 8 || motion == 16) && IsMoving() -> interpolate movement
- *   2. If vehicle/mount attached (+0xC08) and IsMoving() -> sync rider movement
- *   3. If IsPlayer() && life state != DEAD -> pump skill queues and action state
- *   4. Base mobile tick
- *   5. Check dirty position sync flag (+0xA0E): if non-zero -> dispatch sync packet and clear
+ * Native order: motion/cast movement gates, eligible player command actors,
+ * base mobile movement, periodic jobs, then dirty-state publication. The
+ * motion/cast gates and complete dirty publication remain partial below.
  */
 void CGObjChar::OnTick(float fDeltaSec) {
 
@@ -1024,11 +1024,6 @@ void CGObjChar::OnTick(float fDeltaSec) {
 		m_AutoNavigator.Update();
 	}
 
-	// 0x004A8A09: the character's periodic timer table (+0x18C) drives the skill queues. The table itself
-	// (0x004AB640 registers, 0x004AB690 runs it) is not ported, so the interval the character registers for
-	// CGObjChar_ProcessSkillQueues (0x004A6E18: every 0.3 s, 0x004A9900 -> CSkillManager::OnTick) is kept here.
-	m_periodicJobs.Tick(fDeltaSec);
-
 	// 0x004A89F7: CGObjMobile::OnTick (0x0048B8C0). CGObj::OnTick runs first, then the active mover gets
 	// this tick's slice and whatever step it produced is committed.
 	CGObj::OnTick(fDeltaSec);                       // 0x0048B8CE
@@ -1039,6 +1034,9 @@ void CGObjChar::OnTick(float fDeltaSec) {
 			MoveByStep(&step);                                          // 0x0048B912: slot 305
 		}
 	}
+
+	// 4A8A09 runs periodic jobs AFTER the base mobile/movement update.
+	m_periodicJobs.Tick(fDeltaSec);
 
 	// [PARTIAL] 0x004A8A0E sends the dirty status (+0xA0E) through slot 313 and clears it.
 	if (m_bPositionDirty != 0) {
@@ -1285,16 +1283,16 @@ int32_t CGObjChar::SendMsgToPeer(CPacket* pPacket) {
 	return 1;
 }
 
-int32_t CGObjChar::ApplyHit(CGObjChar* pAttacker, int32_t nDamage1, int32_t nDamage2, int32_t nFlag1, int32_t nFlag2) {
-	(void)pAttacker;
+int32_t CGObjChar::ApplyHit(CGObjChar* pAttacker, int32_t nDamage1, int32_t nDamage2, uint32_t reason, void* hitContext) {
+	// Partial actor adapter. Common native handlers 52A240/52D460 reject self
+	// and dead targets before the signed positive-damage test. HP changes use
+	// 4A87D0, including cached vitals and dirty-reason publication, not SetHP.
+	// World dispatch, attribution and death callbacks remain unresolved here.
 	(void)nDamage2;
-	(void)nFlag1;
-	(void)nFlag2;
-	uint32_t dwCurHP = GetCurrentHP();
-	if (static_cast<uint32_t>(nDamage1) >= dwCurHP) {
-		SetCurrentHP(0);
-	} else {
-		SetCurrentHP(dwCurHP - nDamage1);
+	(void)hitContext;
+	if (pAttacker == this || GetLifeState() == 2) return 1;
+	if (nDamage1 > 0) {
+		ApplyHealthAndManaOffset(-nDamage1, 0, static_cast<uint16_t>(reason));
 	}
 	return 1;
 }
@@ -1726,9 +1724,8 @@ uint16_t CGObjChar::GetEquippedPrimaryWeaponTID() const {
 	if ( pWeapon == nullptr ) {
 		return 0;
 	}
-	// 0x004EAD63 requires the equipment word at +0x190 to be zero. The port labels that word
-	// m_dwCurrentDurability, which cannot be right for this test; the label needs checking.
-	if ( static_cast<CGItemEquip*>( pWeapon )->m_dwCurrentDurability != 0 ) {
+	// 4EAD63 checks the derived broken flag, not current durability.
+	if ( static_cast<CGItemEquip*>( pWeapon )->IsBroken() ) {
 		return 0;
 	}
 	return pWeapon->GetTID().wType;

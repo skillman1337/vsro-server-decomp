@@ -4,7 +4,7 @@
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\GObjMob.h
  *
  * Implements:
- *   - CGObjMob @ 0x00AEDD60
+ *   - CGObjMob: existing reconstruction; 0x00AEDD60 is file-path data
  * ============================================================================
  */
 
@@ -18,7 +18,7 @@ public:
 	CGObjMob();
 	virtual ~CGObjMob() override;
 
-	// [RECONSTRUCTED - Native 0x00AEDD60]
+	// [UNIMPLEMENTED - 0x00AEDD60 is a source-path string, not a function]
 	// Monster aggro table and drop dispatch on death
 	virtual void OnDeath(CGObjChar* pKiller);
 

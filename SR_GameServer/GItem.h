@@ -17,8 +17,9 @@
 #include <cstdint>
 #include <string>
 #include "GObj.h"
+#include "../ServerCommon/InstanceItem.h"
 
-class CInstanceChar;
+class CInstanceItem;
 
 // Life state flags returned by CGItem::GetLifeState() (Native slot +0x0F8)
 enum ItemLifeState : uint8_t {
@@ -77,6 +78,45 @@ public:
 	// Native Slot 314 (+0x4E8) / Equip: GetWeaponType
 	virtual uint32_t GetWeaponType() const;
 
+	// [RECONSTRUCTED - 0x00482DB0 / Slot +0x4C]
+	// Subtype predicate: returns true/1 for stackable/mergeable expendable items
+	virtual bool IsSkillActor() const;
+
+	// [RECONSTRUCTED - 0x0048F670 / Slot +0x37C]
+	// Sets 64-bit identity at record+0x20/+0x24 (zeroed on newly split in-memory clones)
+	virtual void SetRecordIdentity20(uint64_t serial);
+	virtual uint64_t GetRecordIdentity20() const;
+
+	// [RECONSTRUCTED - 0x0048F6D0 / Slot +0x4FC]
+	// Authoritative 64-bit serial at record+0xC0/+0xC4
+	virtual uint64_t GetRecordIdentityC0() const;
+
+	// [RECONSTRUCTED - 0x0048F6E0 / Slot +0x500]
+	virtual void SetRecordIdentityC0(uint64_t serial);
+
+	// [RECONSTRUCTED - 0x0048F990 / Slot +0x504]
+	// Binds storage owner entity to item instance
+	virtual void BindStorageOwner(CGObj* pOwner);
+
+	// [RECONSTRUCTED - 0x0048F650 / Slot +0x4E0]
+	// Subtype split stack: returns newly split item or nullptr if unsupported
+	virtual CGItem* SplitStack(int32_t quantity);
+
+	// [RECONSTRUCTED - 0x00484FD0 / Slot +0x360]
+	// Dynamic item clone with record duplication
+	virtual CGItem* CloneItemWithRecord();
+
+	// [RECONSTRUCTED - 0x00459D80 / Slot +0x4E8]
+	virtual int32_t GetMaxStack() const;
+
+	// [RECONSTRUCTED - 0x0049A160 / Slot +0x4EC]
+	virtual int32_t SetCount(int32_t count);
+
+	virtual uint32_t GetRefObjID() const;
+	virtual bool HasCompletePrerequisites() const;
+
+	void* GetOwner() const { return m_pOwner; }
+
 	// Helper getters & setters
 	uint32_t GetGlobalID() const;
 	void SetGlobalID(uint32_t dwID);
@@ -90,7 +130,9 @@ public:
 	void SetLifeState(uint8_t byState);
 
 public:
-	// Exact struct layout matching native binary bytes:
+	// Native offset guide only. This portable class is NOT ABI-layout compatible:
+	// host pointers, STL objects and the abbreviated base differ from retail.
+	// Access portable records through canonical fields, never these byte offsets.
 	// Base CGObj layout (+0x00 - +0x14B, 332 bytes):
 	void*       m_pBaseVTable;        // +0x04: Secondary vftable for CBase @ 0x00AE989C
 	uint32_t    m_dwGlobalID;         // +0x08: Unique runtime entity ID
@@ -100,12 +142,13 @@ public:
 	float       m_fLocalPosY;         // +0x28: World position Y
 	float       m_fLocalPosZ;         // +0x2C: World position Z
 	void*          m_pCharData;          // +0x30: Specialized state block
-	CInstanceChar* m_pDataPermanent;     // +0x34: Pointer to permanent data descriptor
+	CInstanceItem* m_pDataPermanent;     // +0x34: Item record, not a character record
 	uint8_t        m_pad38[0x114];       // +0x38 - +0x14B: Event manager (+0x40), listeners (+0x130)
 
 	// CGItem specific fields (+0x14C - +0x18F, 68 bytes):
-	uint32_t    m_dwDespawnState;     // +0x14C: Despawn state / verification flag (must be 0 on despawn)
-	uint32_t    m_dwOwnerID;          // +0x150: Owner player ID or dropping entity ID
+	void*       m_pOwner;             // +0x14C: Owner entity pointer (CGObj*)
+	uint32_t    m_dwOwnerID;          // +0x154: Owner global entity ID (read from *(owner + 8))
+	uint32_t    m_dwDespawnState;     // +0x14C (despawn verification flag)
 	uint32_t    m_dwDropType;         // +0x154: Drop ownership type / rule
 	float       m_fDropTimer;         // +0x158: Elapsed time on ground (30.0s expiration)
 	uint8_t     m_itemData[20];       // +0x15C - +0x16F: Count, durability, opt level

@@ -122,23 +122,74 @@ int16_t* CGItemExpendable::ExecuteReturnScroll(int16_t* pwResult, int16_t* /*pAr
 	return pwResult;
 }
 
-// [RECONSTRUCTED - Native 0x0049EDB0 / VTable Slot 312]
-// Splits current stack and returns a new expendable item with nCount
-CGItemExpendable* CGItemExpendable::SplitStack(int32_t nCount) {
+// [RECONSTRUCTED - Native 0x0049EDB0 / VTable Slot +0x4E0]
+// Native calls item virtual +360 to clone and register the persistent record.
+CGItem* CGItemExpendable::SplitStack(int32_t nCount) {
 	int32_t cur = GetCount();
 	if (nCount <= 0 || cur <= nCount) {
 		return nullptr;
 	}
+	if (!m_pDataPermanent) {
+		throw std::logic_error("native item clone/registration prerequisite is not implemented");
+	}
 
-	// Decrement current stack
+	// 1. Clone item with record via virtual +0x360
+	CGItem* pCloned = CloneItemWithRecord();
+	if (!pCloned) {
+		return nullptr;
+	}
+
+	// 2. Set remaining count on source
 	SetCount(cur - nCount);
 
-	// Create new item for the split stack
-	CGItemExpendable* pNewItem = new CGItemExpendable();
-	if (pNewItem) {
-		pNewItem->SetCount(nCount);
+	// 3. Set split count on newly created clone
+	pCloned->SetCount(nCount);
+
+	return pCloned;
+}
+
+// [PARTIAL - Native 0x00484FD0 / VTable Slot +0x360]
+// Native factory registration, fresh runtime ID, child-record copy and pool
+// cleanup are not supplied by this direct allocation.
+CGItem* CGItemExpendable::CloneItemWithRecord() {
+	if (!m_pDataPermanent) {
+		return nullptr;
 	}
+
+	// Clone the database record
+	CInstanceItem* pClonedRecord = m_pDataPermanent->CloneRecord();
+	if (!pClonedRecord) {
+		return nullptr;
+	}
+
+	// Newly cloned item has unpersisted serial (0) until DB commit
+	pClonedRecord->SetSerial20(0);
+
+	CGItemExpendable* pNewItem = new CGItemExpendable();
+	pNewItem->m_pDataPermanent = pClonedRecord;
+	pNewItem->m_dwClassID = m_dwClassID;
+	pNewItem->m_dwGlobalID = m_dwGlobalID;
+	pNewItem->m_pOwner = m_pOwner;
+	pNewItem->m_dwOwnerID = m_dwOwnerID;
+	pNewItem->m_dwDropType = m_dwDropType;
+	pNewItem->m_byLifeState = ITEM_STATE_ALIVE;
 	return pNewItem;
+}
+
+bool CGItemExpendable::IsSkillActor() const {
+	return true; // Virtual +0x4C predicate returns 1 for stackable expendable
+}
+
+void CGItemExpendable::BindStorageOwner(CGObj* pOwner) {
+	CGItem::BindStorageOwner(pOwner);
+}
+
+int32_t CGItemExpendable::GetMaxStack() const {
+	return CGItem::GetMaxStack();
+}
+
+bool CGItemExpendable::HasCompletePrerequisites() const {
+	return m_pDataPermanent != nullptr;
 }
 
 // [RECONSTRUCTED - Native 0x0049EE80 / VTable Slot 313]
@@ -161,10 +212,14 @@ int32_t CGItemExpendable::DecrementStock(int32_t nCount) {
 // Returns current stack count from m_pDataPermanent (+0x38)
 int32_t CGItemExpendable::GetCount() const {
 	if (!m_pDataPermanent) {
-		return 0;
+		throw std::logic_error("expendable count requires an item record");
 	}
-	const uint8_t* p = reinterpret_cast<const uint8_t*>(m_pDataPermanent);
-	return *reinterpret_cast<const int32_t*>(p + 0x38);
+	// CInstanceItem is a portable C++ record, not a packed 32-bit retail object.
+	// Native 49A150 reads the SAME +38 column used for equipment durability.
+	int32_t value;
+	const uint32_t bits = m_pDataPermanent->m_dwDurability;
+	std::memcpy(&value, &bits, sizeof(value));
+	return value;
 }
 
 // [RECONSTRUCTED - Native 0x0049A160 / VTable Slot 315]
@@ -174,15 +229,9 @@ int32_t CGItemExpendable::SetCount(int32_t nCount) {
 		nCount = 0;
 	}
 	if (!m_pDataPermanent) {
-		return nCount;
+		throw std::logic_error("expendable count requires an item record");
 	}
-
-	uint8_t* p = reinterpret_cast<uint8_t*>(m_pDataPermanent);
-	int32_t cur = *reinterpret_cast<int32_t*>(p + 0x38);
-	if (cur != nCount) {
-		*reinterpret_cast<int32_t*>(p + 0x38) = nCount;
-		*reinterpret_cast<uint32_t*>(p + 8) |= 4; // Mark modified
-	}
+	m_pDataPermanent->SetDurability(static_cast<uint32_t>(nCount));
 	return nCount;
 }
 
@@ -193,8 +242,7 @@ int32_t CGItemExpendable::OffsetStock(int32_t nDelta) {
 		return 0;
 	}
 
-	const uint8_t* pRef = reinterpret_cast<const uint8_t*>(m_pDataPermanent->m_pRefObjCommon);
-	int32_t maxStack = *reinterpret_cast<const int32_t*>(pRef + 0x198);
+	int32_t maxStack = GetMaxStack();
 	if (maxStack <= 0) {
 		maxStack = 1;
 	}
@@ -272,8 +320,7 @@ bool CGItemExpendable::IsStackFull() const {
 	if (!m_pDataPermanent || !m_pDataPermanent->m_pRefObjCommon) {
 		return false;
 	}
-	const uint8_t* pRef = reinterpret_cast<const uint8_t*>(m_pDataPermanent->m_pRefObjCommon);
-	int32_t maxStack = *reinterpret_cast<const int32_t*>(pRef + 0x198);
+	int32_t maxStack = GetMaxStack();
 	return GetCount() >= maxStack;
 }
 

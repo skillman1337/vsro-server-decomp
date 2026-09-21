@@ -3,15 +3,19 @@
  * Silkroad Online - Item Storage / Inventory Container Implementation
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\GStorage.cpp
  *
- * Implements:
- *   - CGStorage::SetItem @ 0x00AED060
+ * PARTIAL portable slot container.
+ * 0x00AED060 is a source-path string, not SetItem machine code.
  * ============================================================================
  */
 
 #include "GStorage.h"
 
+CGObj* CGStorage::GetOwner() const { return m_pOwner; }
+void CGStorage::SetOwner(CGObj* owner) { m_pOwner = owner; }
+
 CGStorage::CGStorage(uint32_t dwCapacity)
-	: m_dwCapacity(dwCapacity)
+	: m_pOwner(nullptr)
+	, m_dwCapacity(dwCapacity)
 {
 	m_vecSlots.resize(dwCapacity, nullptr);
 }
@@ -23,7 +27,7 @@ CGStorage::~CGStorage() {
 /*
 ================
 CGStorage::GetItem
-[RECONSTRUCTED - Native 0x00AED060]
+[PARTIAL portable container helper; no native function identity established]
 ================
 */
 CGItem* CGStorage::GetItem(uint32_t dwSlot) const {

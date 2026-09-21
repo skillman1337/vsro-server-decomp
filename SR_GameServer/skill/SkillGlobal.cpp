@@ -463,7 +463,7 @@ uint16_t Skill_ValidateEquipmentRequirements(
 		CGItem* pMainItem = const_cast<CGStorage&>(pCaster->m_storage).GetItem(6);
 		if (pMainItem != nullptr) {
 			CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pMainItem);
-			if (pEquip == nullptr || pEquip->GetCurrentDurability() > 0) {
+			if (pEquip == nullptr || !pEquip->IsBroken()) {
 				wMainTID = pMainItem->GetTID().wType;
 			}
 		}
@@ -495,7 +495,7 @@ uint16_t Skill_ValidateEquipmentRequirements(
 	CGItem* pSecItem = const_cast<CGStorage&>(pCaster->m_storage).GetItem(7);
 	if (pSecItem != nullptr) {
 		CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pSecItem);
-		if (pEquip == nullptr || pEquip->GetCurrentDurability() > 0) {
+		if (pEquip == nullptr || !pEquip->IsBroken()) {
 			wSecondaryTID = pSecItem->GetTID().wType;
 		}
 	}
@@ -504,7 +504,7 @@ uint16_t Skill_ValidateEquipmentRequirements(
 	CGItem* pMainItem = const_cast<CGStorage&>(pCaster->m_storage).GetItem(6);
 	if (pMainItem != nullptr) {
 		CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pMainItem);
-		if (pEquip == nullptr || pEquip->GetCurrentDurability() > 0) {
+		if (pEquip == nullptr || !pEquip->IsBroken()) {
 			wMainTID = pMainItem->GetTID().wType;
 		}
 	}
@@ -534,7 +534,7 @@ uint16_t Skill_ValidateEquipmentRequirements(
 				uint16_t itemTID = 0;
 				if (pItem != nullptr) {
 					CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pItem);
-					if (pEquip == nullptr || pEquip->GetCurrentDurability() > 0) {
+					if (pEquip == nullptr || !pEquip->IsBroken()) {
 						itemTID = pItem->GetTID().wType;
 					}
 				}
@@ -550,7 +550,7 @@ uint16_t Skill_ValidateEquipmentRequirements(
 					uint16_t itemTID = 0;
 					if (pItem != nullptr) {
 						CGItemEquip* pEquip = dynamic_cast<CGItemEquip*>(pItem);
-						if (pEquip == nullptr || pEquip->GetCurrentDurability() > 0) {
+						if (pEquip == nullptr || !pEquip->IsBroken()) {
 							itemTID = pItem->GetTID().wType;
 						}
 					}

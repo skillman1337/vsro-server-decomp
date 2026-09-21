@@ -1,0 +1,100 @@
+{
+  "database": "H:/SilkroadOnline GlobalOfficial v1.150 (Legend III)/Retail_Server_For_Research/Eternity Modules and Files - June 2025 Release Edition/Eternity Modules and Files/__MODULES/SR_GameServer.exe.bndb",
+  "independentReopen": true,
+  "functions": [
+    {
+      "va": 4954800,
+      "name": "CGStorageOP_DispatchRelease",
+      "signature": "uint32_t __thiscall(struct StorageOperatorDispatchPrefix* self)",
+      "comment": "Verified ASM: virtual tail dispatch through object+0 vtable, slot44 / +B0. ECX self preserved; no stack parameters added. Base AEC6EC slot44=4B9A80; player AEC7A4 slot44=4BAFF0. Prefix is a bounded analysis projection, not full class layout. Opaque EAX return is passed through; ownership/lifetime depends on dynamic implementation."
+    },
+    {
+      "va": 4739024,
+      "name": "CGObj_CloneItemWithRecord",
+      "signature": "int32_t* __thiscall(int32_t* arg1, int32_t* arg2)",
+      "comment": "Verified 484FDB checks item record; 484FF2 item predicate; 485022 record pool allocation; 485031 record virtual +20 copy; 485063 object factory; 48507D identity reset; 48507F/82 clear record flags. Class override pointer may be null. Factory/pool exceptional and subtype closure remains unresolved."
+    },
+    {
+      "va": 4742768,
+      "name": "GameObject_CreateFromRecord",
+      "signature": "int32_t*(int32_t arg1, int32_t* arg2, int32_t arg3, int32_t arg4, int32_t arg5)",
+      "comment": "Verified global manager D6A960 wrapper; ECX is record at 485E99; five stack arguments to 489730. Previous QueryCollision name was false. Caller cleanup20."
+    },
+    {
+      "va": 4757296,
+      "name": "GameObjectManager_CreateFromRecord",
+      "signature": "void* __thiscall(void* record, void* manager, uint32_t classId, uint32_t argument4, uint32_t argument5, int32_t registerObject)",
+      "comment": "Verified record reference resolution +24, TID at ref+80, factory489DE0, identifier489560, object init virtual350, failure release354, registration conditional arg5==1, manager insertion4898D0. ECX is record, NOT manager despite semantic name. RET14. Unknown two initialization arguments retained neutral. Previous TestLineOfSightCollision label was false."
+    },
+    {
+      "va": 4955104,
+      "name": "CGStorageOP_AttachToEmptySlot",
+      "signature": "int32_t __thiscall(void* self, struct StorageContainerPrefix* storage, int32_t slot, void* item)",
+      "comment": "Verified 4B9BE6 null item, signed slot bounds, virtual14 peek, storage14 owner passed to item virtual504 before vector write. Owner binding implementation closure unresolved."
+    },
+    {
+      "va": 4955232,
+      "name": "CGStorageOP_SplitIntoEmptySlot",
+      "signature": "void* __stdcall(struct StorageContainerPrefix* storage, int32_t source, int32_t destination, int32_t quantity)",
+      "comment": "Verified both bounds; source occupied/destination empty; item4C predicate,4E8 quantity,4E0 split; clone37C(0,0),504(storage owner), write. No local positive-quantity guard in this wrapper. Split clone/factory closure unresolved."
+    },
+    {
+      "va": 4957552,
+      "name": "CGStorageOP_CountEmptySlotsInRange",
+      "signature": "int32_t __thiscall(void* self, struct StorageContainerPrefix* storage, int32_t start, int32_t end)",
+      "comment": "Verified virtual58 delegates(storage,start,end,0),RET C. Target base/PC table slot22=4BA500."
+    },
+    {
+      "va": 4956784,
+      "name": "CGStorageOP_SumQuantityByReference",
+      "signature": "uint32_t __stdcall(struct StorageContainerPrefix* storage, int32_t requireIdentity, int32_t start, int32_t end, void* reference)",
+      "comment": "Verified null ref=>0; signed range bounds; optional itemrecord20|24 nonzero; record18 pointer equality; virtual4E8 quantity; uint32 accumulator wraps. Item ABI/record offset closure tracked separately."
+    },
+    {
+      "va": 4955888,
+      "name": "CGStorageOP_DetachAndDestroy",
+      "signature": "void __thiscall(void* self, struct StorageContainerPrefix* storage, int32_t slot)",
+      "comment": "4B9EF4 signed bounds; virtual0C detach; nonnull result passed in ESI to ObjMgr_DestroyObject. RET8; return has no consistent value."
+    },
+    {
+      "va": 4956144,
+      "name": "CGStorageOP_FindItemPointerDefaultRange",
+      "signature": "uint8_t __thiscall(void* self, struct StorageContainerPrefix* storage, void* item)",
+      "comment": "4B9FF4 kind0 starts13; kinds2,3,4 start0; calls virtual40; other kinds return AL0 (not FF)."
+    },
+    {
+      "va": 4957216,
+      "name": "CGStorageOP_FindItemIdentityDefaultRange",
+      "signature": "void* __thiscall(void* self, struct StorageContainerPrefix* storage, uint64_t identity)",
+      "comment": "4BA420 kind0 start13; kinds2..4 start0; other kinds null. virtual44 receives storage,64bit identity,start,capacity. Identity accessor and miss behavior must be verified in4BA460."
+    },
+    {
+      "va": 4957856,
+      "name": "CGStorageOP_ClearRecordIdentityWords",
+      "signature": "void __stdcall(struct StorageContainerPrefix* storage)",
+      "comment": "4BA6A0 walks full backing vector; occupied record=item+34. If record20 or24 nonzero, gateD2043Cbit1 writes both zero, otherwise diagnostic. Does NOT write record dirty flags. Meaning of identity words remains pending producer proof."
+    },
+    {
+      "va": 4806992,
+      "name": "CGItem_SetField15C",
+      "signature": "int32_t __thiscall(void* arg1, int32_t arg2)",
+      "comment": "Exact mov [ecx+15C],stackarg; RET4. Semantics unresolved; no invented field name."
+    },
+    {
+      "va": 4782480,
+      "name": "CGItem_BindStorageOwner",
+      "signature": "void* __thiscall(void* arg1, void* arg2)",
+      "comment": "Exact 48F996 writes owner pointer atitem14C. Nonnull owner reads owner8 runtimeID then writes item154; null retains previous cachedID. Verified AE9384/AEB2B4 slot321(+504). Conflicts with recreation despawn/drop field names; portable layout not validated."
+    },
+    {
+      "va": 4781776,
+      "name": "CGItem_GetRecordIdentityC0",
+      "signature": "int32_t __fastcall(void* arg1)",
+      "comment": "Exact item34 record; return recordC0 low in EAX,recordC4 highEDX. Purpose of this identity remains pending producer proof. AE9384/AEB2B4 +4FC."
+    }
+  ],
+  "typesVerified": [
+    "StorageOperatorDispatchTable",
+    "StorageContainerPrefix"
+  ]
+}

@@ -3,8 +3,8 @@
  * Silkroad Online - Item Storage / Inventory Container
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\GStorage.h
  *
- * Implements:
- *   - CGStorage @ 0x00AED060
+ * PARTIAL portable slot container.
+ * 0x00AED060 is the native source-path string, not a function entry.
  * ============================================================================
  */
 
@@ -15,13 +15,14 @@
 #include <vector>
 
 class CGItem;
+class CGObj;
 
 class CGStorage {
 public:
 	CGStorage(uint32_t dwCapacity = 45);
 	virtual ~CGStorage();
 
-	// [RECONSTRUCTED - Native 0x00AED060]
+	// Portable container helper; native storage lifecycle/ownership is incomplete.
 	// Slot item manipulation and boundaries check
 	CGItem* GetItem(uint32_t dwSlot) const;
 	bool SetItem(uint32_t dwSlot, CGItem* pItem);
@@ -30,7 +31,11 @@ public:
 	uint32_t GetCapacity() const;
 	uint32_t GetItemCount() const;
 
+	CGObj* GetOwner() const;
+	void SetOwner(CGObj* pOwner);
+
 protected:
+	CGObj*               m_pOwner;
 	uint32_t             m_dwCapacity;
 	std::vector<CGItem*> m_vecSlots;
 };

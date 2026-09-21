@@ -60,9 +60,15 @@ struct tagRefObjCommon {
 		uint16_t m_wCollisionRadius;
 	};
 	uint8_t     padF0[0xA8];         // +0xF0 - +0x197
-	uint8_t     m_byLevel;           // +0x198: Level
-	uint8_t     pad199[0xB7];        // +0x199 - +0x24F
+	union {
+		uint32_t    m_dwMaxStack;        // +0x198: Max stack capacity (proven @ 0x00459D80)
+		uint8_t     m_byLevel;           // +0x198: Monster / character level
+	};
+	uint8_t     pad19C[0xB4];        // +0x19C - +0x24F
 	uint32_t    m_dwRewardExp;       // +0x250: Monster / quest reward experience
+	// Portable field for native item-reference +340. This host structure includes
+	// std::string and is NOT a packed native layout; never read it at raw +340.
+	uint8_t m_byItemFlags340 = 0;
 };
 
 typedef tagRefObjCommon CRefObjCommon;

@@ -13,8 +13,11 @@
  */
 
 #include "InstanceChar.h"
+#include "InstanceItem.h"
 #include "ReferenceData.h"
 #include "../JMX_ServerFramework/ServerFramework/ServerConfig.h"
+
+uint32_t g_bItemDBWriteAllowed = 1;
 
 // ============================================================================
 // CDBRecord Implementation

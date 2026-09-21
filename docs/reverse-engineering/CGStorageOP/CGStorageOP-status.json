@@ -1,0 +1,31 @@
+{
+  "functions": 763,
+  "unlabeledFunctions": 582,
+  "unlabeledBaseSlots": [
+    8,
+    12,
+    13,
+    14,
+    17,
+    19,
+    21,
+    32,
+    35,
+    36
+  ],
+  "questionMarkFunctions": [
+    "0x9df970",
+    "0x9df941",
+    "0x9e31b0",
+    "0x439670",
+    "0x439690"
+  ],
+  "blocksByteVerified": 8706,
+  "dumps": {
+    "CGStorageOP-asm.txt": "9110c1cce4c3c35722df87c94ecbb596d62c7192ed727403b7f850498b6c1a7b",
+    "CGStorageOP-hlil.txt": "4a4cf4c11bebb41cff4b2ae068643b0cad8a73412882027f966beec047d5109f",
+    "CGStorageOP-llil.txt": "175d9ed397635725d43571c1024c29ec6ed05167eaeb87b92cfc9b74610d05d6",
+    "CGStorageOP-mlil.txt": "8df3c0c0b07c47346ac8ab500b0a10debdb9465270a8de2e51e4eccfdf0a5167",
+    "CGStorageOP-psuedo.txt": "d04d98a9402fa2b14087c9a9dee6ff53b7548189306df3d9eaff089198445eee"
+  }
+}

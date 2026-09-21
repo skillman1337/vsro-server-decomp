@@ -4,7 +4,7 @@
  * Original Source: D:\WORK2005\Source\SilkroadOnline\Server\SR_GameServer\EventDaemon_Action.cpp
  *
  * Implements:
- *   - CEventDaemon_Action::ExecuteEventAction @ 0x00B02160
+ *   - CEventDaemon_Action::ExecuteEventAction: placeholder; 0x00B02160 is file-path data
  * ============================================================================
  */
 
@@ -19,7 +19,7 @@ CEventDaemon_Action::~CEventDaemon_Action() {
 /*
 ================
 CEventDaemon_Action::ExecuteEventAction
-[RECONSTRUCTED - Native 0x00B02160]
+[UNIMPLEMENTED - 0x00B02160 is a source-path string, not a function]
 ================
 */
 bool CEventDaemon_Action::ExecuteEventAction(uint32_t dwActionID, const char* pszParam) {

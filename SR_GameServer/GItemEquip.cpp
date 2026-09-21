@@ -24,7 +24,7 @@
 // Constructor: calls base CGItem, initializes vtable to 0x00AEA9EC / 0x00AEAF08
 CGItemEquip::CGItemEquip()
 	: CGItem()
-	, m_dwCurrentDurability(0)
+	, m_dwBrokenState(0)
 	, m_dwMaxDurability(0)
 	, m_fPhyDefense(0.0f)
 	, m_fMagDefense(0.0f)
@@ -57,7 +57,7 @@ CGItemEquip::~CGItemEquip() {
 // [RECONSTRUCTED - Native 0x00495B40 / VTable Slot 0]
 // Resets all combat floating-point attributes and durability
 void CGItemEquip::InitializeCombatStats() {
-	m_dwCurrentDurability = 0;
+	m_dwBrokenState = 0;
 	m_dwMaxDurability     = 0;
 	m_fPhyDefense         = 0.0f;
 	m_fMagDefense         = 0.0f;
@@ -89,9 +89,12 @@ bool CGItemEquip::CanEnchant() {
 	return true;
 }
 
-// [RECONSTRUCTED - Native 0x00495C00 / VTable Slot 212]
+// [PARTIAL - Native 0x00495C00 / VTable Slot 212]
 // Initializes equipment entity from permanent data record
 int32_t CGItemEquip::Initialize(int32_t /*nParam1*/, int32_t /*nParam2*/, void* /*pParam3*/, int32_t /*nParam4*/, void* /*pParam5*/) {
+	// The caller must bind the loaded item record. Base initialization and the
+	// native special +410 branch remain unimplemented; never fabricate durability.
+	SetBrokenState(GetCurrentDurability() == 0);
 	RecalculateStats();
 	m_dwEquipState = 1;
 	return 1;
@@ -192,16 +195,15 @@ bool CGItemEquip::SetStatVariance(uint32_t dwStatIndex, uint32_t dwValue) {
 	return true;
 }
 
-// [RECONSTRUCTED - Native 0x00495D60]
+// [PARTIAL - Native 0x00495D60]
 // Calculates all base combat attributes from RefItem and variances
 void CGItemEquip::CalculateBaseStats() {
 	// Durability, defense, and attack power initialized according to item type
 	if (m_dwMaxDurability == 0) {
 		m_dwMaxDurability = 100;
 	}
-	if (m_dwCurrentDurability == 0) {
-		m_dwCurrentDurability = m_dwMaxDurability;
-	}
+	// Base-stat calculation must never repair the persistent item. Native +190
+	// is a broken flag; current durability belongs to CInstanceItem +38.
 }
 
 // [RECONSTRUCTED - Native 0x00496A70]
@@ -216,8 +218,10 @@ void CGItemEquip::RecalculateStats() {
 	CalculateBaseStats();
 	ApplyMagicOptions();
 
-	if (m_dwCurrentDurability > m_dwMaxDurability) {
-		m_dwCurrentDurability = m_dwMaxDurability;
+	// 495CC2 excludes type3=14. Remaining maximum/blue-stat calculation above
+	// is still partial; clamp only the independently loaded persistent value.
+	if ((GetTID().wType & 0x780) != 0x700 && GetCurrentDurability() > m_dwMaxDurability) {
+		m_pDataPermanent->SetDurability(m_dwMaxDurability);
 	}
 }
 
@@ -230,25 +234,40 @@ int32_t CGItemEquip::GetEquipSlot() const {
 	return 6; // Default to main hand
 }
 
-// [PARTIAL - Native 0x00496D90] (193 bytes)
-// Offsets durability and handles break/repair transitions.
-// CORRECTION (Claude): the clamp is CLAMP(n, 0, max durability +0x194) at native line 925 (0x39D), with signed
-// compares. Not ported: the vftable +0x90 early return (1), ASSERT(n >= 0) before the clamp, the broken-state
-// call 0x00495980(n <= 0), and the store condition (only when byte 0x00D2043C bit 0 is set, else ASSERT and
-// keep the old value; the store also sets instance +0x08 |= 4).
-int32_t CGItemEquip::OffsetDurability(int32_t nOffset) {
-	int32_t nNewDurability = static_cast<int32_t>(m_dwCurrentDurability) + nOffset;
-
-	CLAMP(nNewDurability, 0, static_cast<int32_t>(m_dwMaxDurability));
-
-	m_dwCurrentDurability = static_cast<uint32_t>(nNewDurability);
-	return nNewDurability;
+// 495980: these TID families never carry the broken flag. The +90 predicate
+// (types 5/12) also bypasses durability offset entirely; types 13/14 do not.
+static bool IsEquipFamily(uint16_t tid) {
+	return !(tid & 2) && (tid & 0x1c) == 0xc && (tid & 0x60) == 0x20;
+}
+uint32_t CGItemEquip::GetCurrentDurability() const {
+	if (!m_pDataPermanent) throw std::logic_error("equipment has no item record");
+	return m_pDataPermanent->m_dwDurability;
+}
+void CGItemEquip::SetBrokenState(uint32_t broken) {
+	const auto tid = GetTID().wType;
+	const auto family = (tid >> 7) & 15;
+	m_dwBrokenState = IsEquipFamily(tid) &&
+		(family == 5 || family == 12 || family == 13 || family == 14) ? 0 : broken;
+}
+// 496D90. Native assertion domains (negative signed result/maximum or denied
+// write authority) fail explicitly here; they are not normal skill outcomes.
+int32_t CGItemEquip::OffsetDurability(int32_t offset) {
+	const auto tid = GetTID().wType;
+	const auto family = (tid >> 7) & 15;
+	if (IsEquipFamily(tid) && (family == 5 || family == 12)) return 1;
+	const uint32_t sum = GetCurrentDurability() + static_cast<uint32_t>(offset);
+	if (sum > INT32_MAX || m_dwMaxDurability > INT32_MAX)
+		throw std::domain_error("native durability assertion domain");
+	const uint32_t value = std::min(sum, m_dwMaxDurability);
+	SetBrokenState(value == 0);
+	m_pDataPermanent->SetDurability(value);
+	return static_cast<int32_t>(value);
 }
 
 // [RECONSTRUCTED - Native 0x00496E60]
 // Calculates repair gold cost based on durability loss and item price
 int32_t CGItemEquip::CalculateRepairCost(int32_t nMaxRepairPoints, int32_t* pnPointsRepaired, uint16_t* pwErrorCode) {
-	int32_t nLostDurability = static_cast<int32_t>(m_dwMaxDurability - m_dwCurrentDurability);
+	int32_t nLostDurability = static_cast<int32_t>(m_dwMaxDurability - GetCurrentDurability());
 
 	if (nLostDurability <= 0) {
 		if (pnPointsRepaired) *pnPointsRepaired = 0;
